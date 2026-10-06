@@ -269,30 +269,30 @@ manomaya/
 
 ```mermaid
 flowchart TD
-    A([User Visits Manomaya]) --> B{Token in localStorage?}
-    B -- Yes --> C[Zustand initAuth restores session]
-    B -- No --> D[Landing Page shown]
+    A(["User Visits Manomaya"]) --> B{"Token in localStorage?"}
+    B -- Yes --> C["Zustand initAuth restores session"]
+    B -- No --> D["Landing Page shown"]
 
-    D --> E{User clicks Sign In}
-    E --> F{Has account?}
-    F -- No --> G[Register Form]
-    G --> H["POST /api/register\nbcrypt hash password\nSave User to MongoDB"]
-    H --> I[Return JWT token]
+    D --> E{"User clicks Sign In"}
+    E --> F{"Has account?"}
+    F -- No --> G["Register Form"]
+    G --> H["POST /api/register<br/>bcrypt hash password<br/>Save User to MongoDB"]
+    H --> I["Return JWT token"]
 
-    F -- Yes --> J[Login Form]
-    J --> K["POST /api/login\nVerify bcrypt hash"]
-    K --> L{Credentials valid?}
-    L -- No --> M[Show error toast]
+    F -- Yes --> J["Login Form"]
+    J --> K["POST /api/login<br/>Verify bcrypt hash"]
+    K --> L{"Credentials valid?"}
+    L -- No --> M["Show error toast"]
     L -- Yes --> I
 
-    I --> N[Store JWT in localStorage]
-    N --> O[Zustand setUser]
-    O --> P[Dashboard rendered]
+    I --> N["Store JWT in localStorage"]
+    N --> O["Zustand setUser"]
+    O --> P["Dashboard rendered"]
     C --> P
 
-    P --> Q{Active Project?}
-    Q -- No --> R[Empty state — Create or select project]
-    Q -- Yes --> S[ProjectDashboard loaded]
+    P --> Q{"Active Project?"}
+    Q -- No --> R["Empty state — Create or select project"]
+    Q -- Yes --> S["ProjectDashboard loaded"]
 ```
 
 ---
@@ -301,22 +301,22 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A([User: Create Character]) --> B[CharacterForm.js]
-    B --> C["Fill fields:\nname, age, role, backstory\ncore_traits, strengths, flaws\nfears, goals, values\ndialogue_style, speaking_tone\nvisual: hair, skin, eyes, clothing"]
+    A(["User: Create Character"]) --> B["CharacterForm.js"]
+    B --> C["Fill fields:<br/>name, age, role, backstory<br/>core_traits, strengths, flaws<br/>fears, goals, values<br/>dialogue_style, speaking_tone<br/>visual: hair, skin, eyes, clothing"]
 
-    C --> D["POST /api/characters\nSave to MongoDB\nlinked to projectId"]
-    D --> E[Character persisted]
+    C --> D["POST /api/characters<br/>Save to MongoDB<br/>linked to projectId"]
+    D --> E["Character persisted"]
 
-    E --> F{View character?}
-    F --> G[CharacterCard + CharacterTraits]
-    F --> H[Character3DViewer.js]
-    H --> I["mapDescriptionToColors()\nMaps hair / skin / eye / clothing\ndescription to hex colors"]
-    I --> J["@react-three/fiber scene\nRenders 3D mesh with\nderived colors via Three.js"]
+    E --> F{"View character?"}
+    F --> G["CharacterCard + CharacterTraits"]
+    F --> H["Character3DViewer.js"]
+    H --> I["mapDescriptionToColors()<br/>Maps hair / skin / eye / clothing<br/>description to hex colors"]
+    I --> J["@react-three/fiber scene<br/>Renders 3D mesh with<br/>derived colors via Three.js"]
 
-    E --> K[Build Character Brain for scene gen]
+    E --> K["Build Character Brain for scene gen"]
     K --> L["build_character_brain(char) — Python"]
-    L --> M["Outputs rich psychology string:\nName, Role, Backstory, Traits, Flaws\nFears, Goals, Values, Speech Style\nCurrent Emotions, Relationship States"]
-    M --> N[Injected into LLM system prompt\nfor scene generation]
+    L --> M["Outputs rich psychology string:<br/>Name, Role, Backstory, Traits, Flaws<br/>Fears, Goals, Values, Speech Style<br/>Current Emotions, Relationship States"]
+    M --> N["Injected into LLM system prompt<br/>for scene generation"]
 ```
 
 ---
@@ -325,29 +325,32 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A([User: Write Scene]) --> B["SceneStudioView.js\nInput: scene prompt + select characters + tone"]
-    B --> C["Frontend proxy\nPOST /generate-scene on AI backend"]
+    A(["User: Write Scene"]) --> B["SceneStudioView.js<br/>Input: scene prompt + select characters + tone"]
+    B --> C["Frontend proxy<br/>POST /generate-scene on AI backend"]
 
-    C --> D[Build context inputs]
+    C --> D["Build context inputs"]
     D --> D1["format_story_bible_for_prompt(project_id)"]
-    D --> D2["retrieve_memories(project_id, current_scene)\nSemantic ChromaDB retrieval\nof past relevant scenes"]
-    D --> D3["get_relationship_state per character pair\nin the scene"]
-    D --> D4["build_character_brain(char)\nfor each selected character"]
+    D --> D2["retrieve_memories(project_id, current_scene)<br/>Semantic ChromaDB retrieval<br/>of past relevant scenes"]
+    D --> D3["get_relationship_state per character pair<br/>in the scene"]
+    D --> D4["build_character_brain(char)<br/>for each selected character"]
 
-    D1 & D2 & D3 & D4 --> E[Assemble full LLM system prompt]
+    D1 --> E["Assemble full LLM system prompt"]
+    D2 --> E
+    D3 --> E
+    D4 --> E
 
-    E --> F["Groq API: llama-3.3-70b-versatile\nGenerate cinematic scene script\nContext-aware, psychology-driven"]
-    F --> G[Generated scene text returned]
+    E --> F["Groq API: llama-3.3-70b-versatile<br/>Generate cinematic scene script<br/>Context-aware, psychology-driven"]
+    F --> G["Generated scene text returned"]
 
-    G --> H["generate_direction(scene_text)\nDirector notes + camera suggestions"]
-    H --> I["get_character_hidden_thoughts(char, scene)\nHidden internal monologue per character"]
-    I --> J["compute_emotion_deltas(scene_text, characters)\nLLM computes emotion changes\nfor each character after scene"]
+    G --> H["generate_direction(scene_text)<br/>Director notes + camera suggestions"]
+    H --> I["get_character_hidden_thoughts(char, scene)<br/>Hidden internal monologue per character"]
+    I --> J["compute_emotion_deltas(scene_text, characters)<br/>LLM computes emotion changes<br/>for each character after scene"]
 
-    J --> K["store_memory(project_id, scene_text)\nExtract key facts + store to ChromaDB"]
-    K --> L["analyze_story_impact(scene_text)\nUpdate Story Bible via LLM"]
+    J --> K["store_memory(project_id, scene_text)<br/>Extract key facts + store to ChromaDB"]
+    K --> L["analyze_story_impact(scene_text)<br/>Update Story Bible via LLM"]
 
-    L --> M[Scene saved to MongoDB\nwith text, direction, thoughts, emotion_deltas]
-    M --> N[UI: Timeline, Gallery, Story Bible updated]
+    L --> M["Scene saved to MongoDB<br/>with text, direction, thoughts, emotion_deltas"]
+    M --> N["UI: Timeline, Gallery, Story Bible updated"]
 ```
 
 ---
@@ -356,25 +359,25 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A([Scene Generated]) --> B["compute_emotion_deltas()\nGroq LLM analysis of scene text"]
-    B --> C["Returns per-character individual emotions\nand directional pair emotion deltas"]
+    A(["Scene Generated"]) --> B["compute_emotion_deltas()<br/>Groq LLM analysis of scene text"]
+    B --> C["Returns per-character individual emotions<br/>and directional pair emotion deltas"]
 
-    C --> D[Individual Emotions per Character]
-    D --> D1["joy, sadness, fear, anger\ndisgust, surprise, trust, anticipation\nStored in data/emotions.py JSON store"]
+    C --> D["Individual Emotions per Character"]
+    D --> D1["joy, sadness, fear, anger<br/>disgust, surprise, trust, anticipation<br/>Stored in data/emotions.py JSON store"]
 
-    C --> E[Directional Relationship Pairs]
-    E --> E1["CharA → CharB:\ntrust, attachment, awkwardness\nresentment, comfort  — each 0–100%"]
+    C --> E["Directional Relationship Pairs"]
+    E --> E1["CharA → CharB:<br/>trust, attachment, awkwardness<br/>resentment, comfort — each 0–100%"]
 
-    E1 --> F["update_relationship_state(c1, c2, deltas)\nMutates relationship_states JSON store"]
+    E1 --> F["update_relationship_state(c1, c2, deltas)<br/>Mutates relationship_states JSON store"]
 
-    D1 --> G[EmotionPanel.js]
-    G --> G1[Displays live emotion bars per character]
+    D1 --> G["EmotionPanel.js"]
+    G --> G1["Displays live emotion bars per character"]
 
-    F --> H[RelationshipPanel.js]
-    H --> H1[Sliders showing directional emotion values]
+    F --> H["RelationshipPanel.js"]
+    H --> H1["Sliders showing directional emotion values"]
 
-    F --> I[RelationshipCanvasView.js]
-    I --> I1["@xyflow React Flow graph\nNodes = Characters\nEdges = Directional relationships\nColor-coded by dominant emotion"]
+    F --> I["RelationshipCanvasView.js"]
+    I --> I1["@xyflow React Flow graph<br/>Nodes = Characters<br/>Edges = Directional relationships<br/>Color-coded by dominant emotion"]
 ```
 
 ---
@@ -383,26 +386,26 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A([Scene Generated]) --> B["memory_extractor.py\nextract_memory(scene_text)"]
-    B --> C["Groq LLM extracts:\nKey events, character decisions\nRelationship changes, world facts"]
-    C --> D["store_memory(project_id, memory_text)\nEmbedded via sentence-transformers\nStored in ChromaDB collection"]
+    A(["Scene Generated"]) --> B["memory_extractor.py<br/>extract_memory(scene_text)"]
+    B --> C["Groq LLM extracts:<br/>Key events, character decisions<br/>Relationship changes, world facts"]
+    C --> D["store_memory(project_id, memory_text)<br/>Embedded via sentence-transformers<br/>Stored in ChromaDB collection"]
 
-    D --> E[(ChromaDB Vector Store\nPersisted per project)]
+    D --> E[("ChromaDB Vector Store<br/>Persisted per project")]
 
-    F([Next Scene Prompt]) --> G["retrieve_memories(project_id, current_scene)"]
-    G --> H["Semantic similarity search\nin ChromaDB against current scene text"]
-    H --> I["Returns top-k most relevant\npast scene memories as context string"]
-    I --> J[Injected into scene generation prompt]
+    F(["Next Scene Prompt"]) --> G["retrieve_memories(project_id, current_scene)"]
+    G --> H["Semantic similarity search<br/>in ChromaDB against current scene text"]
+    H --> I["Returns top-k most relevant<br/>past scene memories as context string"]
+    I --> J["Injected into scene generation prompt"]
 
     A --> K["analyze_story_impact(scene_text, project_id)"]
-    K --> L["Groq LLM updates Story Bible:\nimportant_events, active_story_threads\ncharacter_summaries, relationship_summaries\nworld_summary"]
-    L --> M["merge_story_bible_analysis()\nMerges new analysis into existing bible"]
-    M --> N[(Story Bible JSON store)]
-    N --> O[StoryBibleView.js]
-    O --> O1["Displays World Summary, Active Threads\nKey Events, Character Evolution\nRelationship Dynamics"]
+    K --> L["Groq LLM updates Story Bible:<br/>important_events, active_story_threads<br/>character_summaries, relationship_summaries<br/>world_summary"]
+    L --> M["merge_story_bible_analysis()<br/>Merges new analysis into existing bible"]
+    M --> N[("Story Bible JSON store")]
+    N --> O["StoryBibleView.js"]
+    O --> O1["Displays World Summary, Active Threads<br/>Key Events, Character Evolution<br/>Relationship Dynamics"]
 
-    P([Rebuild All]) --> Q["POST /rebuild-story-bible\nFull retrospective analysis\nfrom all historical scenes"]
-    Q --> R["Rebuilds relationship states\nfrom emotion_deltas + Story Bible\n+ Character arcs via Groq per character"]
+    P(["Rebuild All"]) --> Q["POST /rebuild-story-bible<br/>Full retrospective analysis<br/>from all historical scenes"]
+    Q --> R["Rebuilds relationship states<br/>from emotion_deltas + Story Bible<br/>+ Character arcs via Groq per character"]
 ```
 
 ---
@@ -411,22 +414,22 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A([User: Generate Scene Image]) --> B["SceneStudioView.js — trigger image gen"]
-    B --> C["POST /api/images (Next.js proxy)\nto POST /generate-image on AI backend"]
+    A(["User: Generate Scene Image"]) --> B["SceneStudioView.js — trigger image gen"]
+    B --> C["POST /api/images (Next.js proxy)<br/>to POST /generate-image on AI backend"]
 
     C --> D["build_visual_prompt(scene, characters, tone)"]
-    D --> E["Constructs base visual description:\nCharacter appearances, scene mood\nEnvironment details, lighting setup"]
-    E --> F["enhance_prompt_with_llm(base_prompt)\nGroq llama-3.1-8b-instant as cinematographer:\nVolumetric lighting, depth of field\nSkin textures, clothing folds, lens type"]
-    F --> G["FLUX image generation model\nOutputs high-quality cinematic scene image"]
-    G --> H["Saved to generated_images/\nMounted as static via FastAPI StaticFiles"]
-    H --> I[Image URL returned to frontend]
-    I --> J[Displayed in Scene Studio + GalleryView]
+    D --> E["Constructs base visual description:<br/>Character appearances, scene mood<br/>Environment details, lighting setup"]
+    E --> F["enhance_prompt_with_llm(base_prompt)<br/>Groq llama-3.1-8b-instant as cinematographer:<br/>Volumetric lighting, depth of field<br/>Skin textures, clothing folds, lens type"]
+    F --> G["FLUX image generation model<br/>Outputs high-quality cinematic scene image"]
+    G --> H["Saved to generated_images/<br/>Mounted as static via FastAPI StaticFiles"]
+    H --> I["Image URL returned to frontend"]
+    I --> J["Displayed in Scene Studio + GalleryView"]
 
-    K([User: Generate Video]) --> L["POST /api/videos\nto POST /generate-video on AI backend"]
-    L --> M["video_generator.py\nBuilds video generation request from scene context"]
+    K(["User: Generate Video"]) --> L["POST /api/videos<br/>to POST /generate-video on AI backend"]
+    L --> M["video_generator.py<br/>Builds video generation request from scene context"]
     M --> N["AI video model via imageio-ffmpeg pipeline"]
-    N --> O[Video file saved — URL returned]
-    O --> P[GalleryView.js plays inline video]
+    N --> O["Video file saved — URL returned"]
+    O --> P["GalleryView.js plays inline video"]
 ```
 
 ---
@@ -435,15 +438,15 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A([User: Generate Storyboard]) --> B["SceneStudioView.js\nTrigger storyboard generation for a scene"]
-    B --> C["POST /api/storyboard\nto POST /generate-storyboard on AI backend"]
+    A(["User: Generate Storyboard"]) --> B["SceneStudioView.js<br/>Trigger storyboard generation for a scene"]
+    B --> C["POST /api/storyboard<br/>to POST /generate-storyboard on AI backend"]
 
-    C --> D["generate_storyboard(scene_text)\nin storyboard/services.py"]
-    D --> E["storyboard_generator.py\nGroq LLM with storyboard system prompt"]
-    E --> F["Returns structured shot list:\nShot type: close-up, wide, OTS\nCamera angle + lens suggestion\nCharacter action + dialogue beat\nEmotional tone per shot"]
-    F --> G["StoryboardResponse via Pydantic\nList of StoryboardPanel objects"]
-    G --> H["Saved to MongoDB via Next.js route\nlinked to scene + project"]
-    H --> I[Storyboard panels rendered\nwith shot type icons and camera notes]
+    C --> D["generate_storyboard(scene_text)<br/>in storyboard/services.py"]
+    D --> E["storyboard_generator.py<br/>Groq LLM with storyboard system prompt"]
+    E --> F["Returns structured shot list:<br/>Shot type: close-up, wide, OTS<br/>Camera angle + lens suggestion<br/>Character action + dialogue beat<br/>Emotional tone per shot"]
+    F --> G["StoryboardResponse via Pydantic<br/>List of StoryboardPanel objects"]
+    G --> H["Saved to MongoDB via Next.js route<br/>linked to scene + project"]
+    H --> I["Storyboard panels rendered<br/>with shot type icons and camera notes"]
 ```
 
 ---
@@ -481,12 +484,12 @@ erDiagram
         string age
         string role
         string backstory
-        string[] core_traits
-        string[] strengths
-        string[] flaws
-        string[] fears
-        string[] goals
-        string[] values
+        string_array core_traits
+        string_array strengths
+        string_array flaws
+        string_array fears
+        string_array goals
+        string_array values
         string dialogue_style
         string speaking_tone
         object visual_features
@@ -496,7 +499,7 @@ erDiagram
     SCENE {
         ObjectId _id PK
         ObjectId projectId FK
-        ObjectId[] characterIds FK
+        ObjectId_array characterIds FK
         string prompt
         string generated_text
         string direction
@@ -512,7 +515,7 @@ erDiagram
         ObjectId _id PK
         ObjectId sceneId FK
         ObjectId projectId FK
-        object[] panels
+        object_array panels
         date createdAt
     }
 
